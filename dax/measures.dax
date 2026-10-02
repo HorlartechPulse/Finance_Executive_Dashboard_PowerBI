@@ -1,0 +1,198 @@
+// ============================================================
+// FINANCE EXECUTIVE DASHBOARD — DAX MEASURE LIBRARY
+// Create a measure table "_Measures" and paste these measures
+// ============================================================
+
+// --- Time intelligence helpers (requires DimDate marked as Date table) ---
+// Relationship: FactFinancials[DateKey] → DimDate[DateKey]
+
+// Base filtered amount (Actual scenario by default via slicer or TREATAS)
+Total Amount = SUM ( FactFinancials[Amount] )
+
+// --- Core P&L KPIs ---
+Revenue =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Revenue",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+COGS =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "COGS",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Gross Profit =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Gross Profit",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Operating Expenses =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Operating Expenses",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Net Profit =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Net Profit",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+// --- Margin & ratio measures ---
+Gross Profit Margin =
+DIVIDE ( [Gross Profit], [Revenue] )
+
+Operating Expense Ratio =
+DIVIDE ( [Operating Expenses], [Revenue] )
+
+Net Profit Margin =
+DIVIDE ( [Net Profit], [Revenue] )
+
+// --- Benchmark comparison (from Ref_Benchmarks or hardcoded demo targets) ---
+Revenue Benchmark = 1520000
+COGS Benchmark = 1060000
+Gross Profit Benchmark = 460000
+Net Profit Benchmark = -350000
+
+Revenue vs Benchmark % =
+DIVIDE ( [Revenue] - [Revenue Benchmark], ABS ( [Revenue Benchmark] ) )
+
+COGS vs Benchmark % =
+DIVIDE ( [COGS] - [COGS Benchmark], ABS ( [COGS Benchmark] ) )
+
+GP vs Benchmark % =
+DIVIDE ( [Gross Profit] - [Gross Profit Benchmark], ABS ( [Gross Profit Benchmark] ) )
+
+NP vs Benchmark % =
+DIVIDE ( [Net Profit] - [Net Profit Benchmark], ABS ( [Net Profit Benchmark] ) )
+
+// --- Prior year / budget variants ---
+Revenue Budget =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Revenue",
+    DimScenario[ScenarioName] = "Budget"
+)
+
+Revenue Prior Year =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Revenue",
+    DimScenario[ScenarioName] = "Prior Year"
+)
+
+Revenue vs Budget % =
+DIVIDE ( [Revenue] - [Revenue Budget], [Revenue Budget] )
+
+Revenue vs Last Year % =
+DIVIDE ( [Revenue] - [Revenue Prior Year], [Revenue Prior Year] )
+
+// --- Balance sheet (latest date in filter context) ---
+Total Assets =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Total Assets",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Total Liabilities =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Total Liabilities",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Cash and Bank =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Cash & Bank Balances",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Accounts Receivable =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Account Receivables",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Inventory =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Inventory",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Deposits Prepayments =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Deposits, Advances & Prepayments",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Current Assets =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Current Assets",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Accounts Payable =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Account Payables",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Wages Payable =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Wages Payable",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Provisions Accruals =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Provisions & Accruals",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Other Payable =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Other Payable",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+Current Liabilities =
+CALCULATE (
+    SUM ( FactFinancials[Amount] ),
+    DimAccount[AccountName] = "Current Liabilities",
+    DimScenario[ScenarioName] = "Actual"
+)
+
+// --- Dynamic titles / labels ---
+Selected Period Label =
+VAR MinD = MIN ( DimDate[Date] )
+VAR MaxD = MAX ( DimDate[Date] )
+RETURN
+    FORMAT ( MinD, "M/D/YYYY" ) & " - " & FORMAT ( MaxD, "M/D/YYYY" )
+
+// --- Sparkline helper: monthly revenue for card visuals ---
+Revenue by Month =
+[Revenue]  // use on line chart with DimDate[MonthYear] axis
+
+// --- Income statement relative bar (% of Revenue) ---
+IS Revenue Pct = 1
+IS COGS Pct = DIVIDE ( [COGS], [Revenue] )
+IS Gross Profit Pct = DIVIDE ( [Gross Profit], [Revenue] )
+IS OPEX Pct = DIVIDE ( [Operating Expenses], [Revenue] )
+IS Net Profit Pct = DIVIDE ( [Net Profit], [Revenue] )
